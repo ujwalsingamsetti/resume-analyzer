@@ -1,0 +1,181 @@
+/* ResumeUploader Styles */
+.uploader-container {
+  width: 100%;
+}
+
+.upload-card {
+  text-align: center;
+  margin-bottom: var(--space-xl);
+}
+
+.upload-header {
+  margin-bottom: var(--space-xl);
+}
+
+.upload-icon {
+  background: var(--primary-gradient);
+  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
+  display: inline-flex;
+  margin-bottom: var(--space-lg);
+  color: var(--white);
+  box-shadow: var(--shadow-lg);
+}
+
+.upload-header h2 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin-bottom: var(--space-sm);
+}
+
+.upload-header p {
+  color: var(--gray-600);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.upload-area {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  align-items: center;
+}
+
+.file-input-container {
+  width: 100%;
+  max-width: 400px;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-input-label {
+  display: block;
+  border: 2px dashed var(--gray-300);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2xl);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: var(--gray-50);
+}
+
+.file-input-label:hover {
+  border-color: var(--primary);
+  background: var(--gray-100);
+  transform: translateY(-1px);
+}
+
+.file-input-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--gray-600);
+}
+
+.file-input-content svg {
+  color: var(--primary);
+}
+
+.file-input-content span {
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.file-input-content small {
+  font-size: 0.875rem;
+  opacity: 0.7;
+}
+
+.file-selected {
+  width: 100%;
+  max-width: 400px;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: var(--success-gradient);
+  color: var(--white);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+}
+
+.file-size {
+  opacity: 0.8;
+  font-size: 0.875rem;
+}
+
+.upload-btn {
+  min-width: 200px;
+  height: 48px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.upload-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.upload-btn.loading {
+  pointer-events: none;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid var(--white);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: var(--danger);
+  color: var(--white);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  margin-top: var(--space-md);
+}
+
+.error-message svg {
+  flex-shrink: 0;
+}
+
+.analysis-container {
+  margin-top: var(--space-xl);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .upload-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .upload-header p {
+    font-size: 0.875rem;
+  }
+  
+  .file-input-label {
+    padding: var(--space-xl);
+  }
+  
+  .upload-btn {
+    min-width: 100%;
+  }
+} 
