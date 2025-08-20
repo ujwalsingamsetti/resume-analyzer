@@ -29,7 +29,7 @@ An AI-powered resume analysis application built with React, Node.js, and Google 
 - **PDF-Parse** - PDF text extraction
 
 ### Deployment
-- **Railway** - Backend hosting
+- **Railway / Render / Heroku / Cloud Run** - Backend hosting
 - **Vercel** - Frontend hosting
 - **GitHub Actions** - CI/CD pipeline
 
@@ -73,7 +73,7 @@ An AI-powered resume analysis application built with React, Node.js, and Google 
 ### GitHub Deployment (Recommended)
 
 1. **Fork/Clone this repository**
-2. **Set up Railway backend**
+2. **Set up backend (Railway or Render)**
    - Create Railway account
    - Connect GitHub repository
    - Set environment variables
@@ -116,12 +116,18 @@ resume-analyzer/
 
 ### Backend (.env)
 ```env
-DB_USER=your_db_username
-DB_HOST=your_db_host
-DB_DATABASE=your_db_name
-DB_PASSWORD=your_db_password
+# Preferred single URL
+DATABASE_URL=postgres://user:pass@host:5432/db
+
+# Or discrete vars (used if DATABASE_URL is empty)
+DB_USER=
+DB_HOST=
+DB_DATABASE=
+DB_PASSWORD=
 DB_PORT=5432
+DB_SSL=false
 GEMINI_API_KEY=your_gemini_api_key
+CORS_ORIGINS=https://your-frontend.vercel.app,http://localhost:3000
 ```
 
 ### Frontend

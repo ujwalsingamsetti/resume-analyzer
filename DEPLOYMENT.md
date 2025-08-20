@@ -30,6 +30,28 @@ railway init
 railway up
 ```
 
+### 1b. Backend Deployment (Render) — Recommended alternative
+
+Option A: Use Render dashboard (simplest)
+
+1. Create a Web Service from your GitHub repo
+2. Root Directory: `backend`
+3. Build Command: `npm ci`
+4. Start Command: `npm start`
+5. Health Check Path: `/api/resumes/test`
+6. Add Environment Variables:
+   - `NODE_ENV=production`
+   - `GEMINI_API_KEY`
+   - `CORS_ORIGINS` (comma-separated), e.g. `https://your-frontend.vercel.app,http://localhost:3000`
+   - `DATABASE_URL` (use Render Postgres or Neon)
+
+Option B: Use the provided `render.yaml` (Blueprint)
+
+```bash
+render blueprint deploy
+```
+This will provision a free Postgres and a Node Web Service using the settings above.
+
 **Set Environment Variables in Railway Dashboard:**
 - `DB_USER`: Your database username
 - `DB_HOST`: Your database host
