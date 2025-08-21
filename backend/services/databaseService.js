@@ -1,11 +1,33 @@
 const pool = require('../db/index');
 
 class DatabaseService {
+  async withRetry(operation, maxRetries = 3) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        if (attempt === maxRetries || !this.isRetryableError(error)) {
+          throw error;
+        }
+        console.log(`Database operation failed (attempt ${attempt}/${maxRetries}):`, error.message);
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+      }
+    }
+  }
+
+  isRetryableError(error) {
+    return error.code === 'ECONNRESET' || 
+           error.code === 'ENOTFOUND' || 
+           error.code === 'ECONNREFUSED' ||
+           error.message.includes('Connection terminated');
+  }
+
   // Save resume analysis to database
   async saveResumeAnalysis(analysis) {
-    const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
+    return this.withRetry(async () => {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
       
       // Insert main resume data
       const resumeResult = await client.query(`
@@ -106,29 +128,33 @@ class DatabaseService {
         }
       }
       
-      await client.query('COMMIT');
-      return resumeId;
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
-    }
+        await client.query('COMMIT');
+        return resumeId;
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      } finally {
+        client.release();
+      }
+    });
   }
   
   // Get all resumes with basic info
   async getAllResumes() {
-    const result = await pool.query(`
-      SELECT id, name, email, resume_rating, created_at
-      FROM resumes
-      ORDER BY created_at DESC
-    `);
-    return result.rows;
+    return this.withRetry(async () => {
+      const result = await pool.query(`
+        SELECT id, name, email, resume_rating, created_at
+        FROM resumes
+        ORDER BY created_at DESC
+      `);
+      return result.rows;
+    });
   }
   
   // Get detailed resume by ID
   async getResumeById(id) {
-    const client = await pool.connect();
+    return this.withRetry(async () => {
+      const client = await pool.connect();
     try {
       // Get main resume data
       const resumeResult = await client.query(`
@@ -186,27 +212,30 @@ class DatabaseService {
         .filter(skill => skill.skill_type === 'soft')
         .map(skill => skill.skill_name);
       
-      return {
-        ...resume,
-        work_experience: workResult.rows,
-        education: educationResult.rows,
-        technical_skills: technicalSkills,
-        soft_skills: softSkills,
-        projects: projectsResult.rows,
-        certifications: certificationsResult.rows.map(cert => cert.certification_name),
-        upskill_suggestions: suggestionsResult.rows.map(suggestion => suggestion.suggestion)
-      };
-    } finally {
-      client.release();
-    }
+        return {
+          ...resume,
+          work_experience: workResult.rows,
+          education: educationResult.rows,
+          technical_skills: technicalSkills,
+          soft_skills: softSkills,
+          projects: projectsResult.rows,
+          certifications: certificationsResult.rows.map(cert => cert.certification_name),
+          upskill_suggestions: suggestionsResult.rows.map(suggestion => suggestion.suggestion)
+        };
+      } finally {
+        client.release();
+      }
+    });
   }
   
   // Delete resume by ID
   async deleteResume(id) {
-    const result = await pool.query(`
-      DELETE FROM resumes WHERE id = $1
-    `, [id]);
-    return result.rowCount > 0;
+    return this.withRetry(async () => {
+      const result = await pool.query(`
+        DELETE FROM resumes WHERE id = $1
+      `, [id]);
+      return result.rowCount > 0;
+    });
   }
 }
 
