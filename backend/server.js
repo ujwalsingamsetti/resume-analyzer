@@ -7,6 +7,7 @@ const app = express();
 // Configure CORS to allow requests from Vercel frontend
 // Optionally provide a comma-separated list of origins via CORS_ORIGINS
 const defaultAllowedOrigins = [
+  'https://resume-analyzer-cyan.vercel.app',
   'https://resume-analysis-two.vercel.app',
   'https://resume-analysis-o6m4t6e4v-ujwal-singamsettis-projects.vercel.app',
   'https://resume-analysis-5of5qzrjr-ujwal-singamsettis-projects.vercel.app',
