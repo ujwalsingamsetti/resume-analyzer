@@ -4,7 +4,7 @@ import ResumeDetails from './ResumeDetails';
 import './ResumeUploader.css';
 
 // API base URL - will use environment variable in production
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5050';
+const API_BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:5050').replace(/\/$/, '');
 
 function ResumeUploader() {
   const [file, setFile] = useState(null);
