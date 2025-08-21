@@ -14,7 +14,8 @@ if (process.env.DATABASE_URL) {
         connectionTimeoutMillis: 10000,
         acquireTimeoutMillis: 60000,
         keepAlive: true,
-        keepAliveInitialDelayMillis: 0
+        keepAliveInitialDelayMillis: 0,
+        options: '--search_path=public'
     };
 } else {
     poolConfig = {
@@ -29,7 +30,8 @@ if (process.env.DATABASE_URL) {
         connectionTimeoutMillis: 10000,
         acquireTimeoutMillis: 60000,
         keepAlive: true,
-        keepAliveInitialDelayMillis: 0
+        keepAliveInitialDelayMillis: 0,
+        options: '--search_path=public'
     };
 }
 
