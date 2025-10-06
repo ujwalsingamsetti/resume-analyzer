@@ -14,7 +14,30 @@ async function analyzeResume(buffer) {
 
     console.log('Initializing Gemini AI...');
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    
+    // Try different model names until one works
+    const modelNames = ['gemini-1.5-flash-002', 'gemini-1.5-pro', 'gemini-pro', 'gemini-1.5-flash-latest'];
+    let model;
+    let lastError;
+    
+    for (const modelName of modelNames) {
+      try {
+        console.log(`Trying model: ${modelName}`);
+        model = genAI.getGenerativeModel({ model: modelName });
+        // Test the model with a simple prompt
+        await model.generateContent('Hello');
+        console.log(`Successfully initialized model: ${modelName}`);
+        break;
+      } catch (error) {
+        console.log(`Model ${modelName} failed:`, error.message);
+        lastError = error;
+        continue;
+      }
+    }
+    
+    if (!model) {
+      throw new Error(`No working Gemini model found. Last error: ${lastError.message}`);
+    }
 
     const prompt = `Analyze this resume and return ONLY a valid JSON object with this exact structure:
 
