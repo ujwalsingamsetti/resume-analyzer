@@ -15,11 +15,54 @@ async function analyzeResume(buffer) {
     console.log('Initializing Gemini AI...');
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     
-    // Use the basic model that should work everywhere
-    const model = genAI.getGenerativeModel({ 
-      model: 'gemini-1.5-flash-8b'
-    });
-    console.log('Model initialized successfully');
+    // First, let's list available models
+    try {
+      console.log('Fetching available models...');
+      const models = await genAI.listModels();
+      console.log('Available models:', models.map(m => m.name));
+      
+      // Find a working model
+      const availableModel = models.find(m => 
+        m.name.includes('gemini') && 
+        m.supportedGenerationMethods?.includes('generateContent')
+      );
+      
+      if (!availableModel) {
+        throw new Error('No suitable Gemini model found');
+      }
+      
+      console.log('Using model:', availableModel.name);
+      const model = genAI.getGenerativeModel({ model: availableModel.name });
+      console.log('Model initialized successfully');
+      
+      return await generateWithModel(model, prompt);
+    } catch (listError) {
+      console.log('Could not list models, trying fallback:', listError.message);
+      
+      // Fallback to basic model names
+      const fallbackModels = ['text-bison-001', 'gemini-pro-vision', 'gemini-pro'];
+      
+      for (const modelName of fallbackModels) {
+        try {
+          console.log(`Trying fallback model: ${modelName}`);
+          const model = genAI.getGenerativeModel({ model: modelName });
+          return await generateWithModel(model, prompt);
+        } catch (error) {
+          console.log(`Fallback model ${modelName} failed:`, error.message);
+          continue;
+        }
+      }
+      
+      throw new Error('All models failed. Please check your API key and region.');
+    }
+  } catch (error) {
+    console.error('Analysis error:', error.message);
+    throw error;
+  }
+}
+
+async function generateWithModel(model, prompt) {
+  try {
 
     const prompt = `Analyze this resume and return ONLY a valid JSON object with this exact structure:
 
@@ -60,7 +103,7 @@ Resume text: ${resumeText}`;
     
     return analysis;
   } catch (error) {
-    console.error('Analysis error:', error.message);
+    console.error('Model generation error:', error.message);
     throw error;
   }
 }
