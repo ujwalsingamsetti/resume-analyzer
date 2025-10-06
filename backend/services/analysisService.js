@@ -39,9 +39,18 @@ Resume text: ${resumeText}`;
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
     
     console.log('Calling Gemini API...');
-    const result = await model.generateContent(prompt);
+    
+    // Add timeout
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('API timeout after 30 seconds')), 30000)
+    );
+    
+    const apiPromise = model.generateContent(prompt);
+    const result = await Promise.race([apiPromise, timeoutPromise]);
+    
     const responseText = result.response.text();
-    console.log('Gemini response received');
+    console.log('Gemini response received, length:', responseText.length);
+    console.log('First 200 chars:', responseText.substring(0, 200));
 
     // Clean response
     let jsonText = responseText.trim();
@@ -49,11 +58,39 @@ Resume text: ${resumeText}`;
     if (jsonText.startsWith('```')) jsonText = jsonText.substring(3);
     if (jsonText.endsWith('```')) jsonText = jsonText.substring(0, jsonText.length - 3);
 
-    console.log('Parsing JSON response...');
-    const analysis = JSON.parse(jsonText.trim());
-    console.log('Analysis completed successfully');
+    console.log('Cleaned JSON text length:', jsonText.length);
     
-    return analysis;
+    try {
+      const analysis = JSON.parse(jsonText.trim());
+      console.log('Analysis completed successfully');
+      return analysis;
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError.message);
+      console.error('Raw response:', responseText);
+      
+      // Return a basic analysis if JSON parsing fails
+      const emailMatch = resumeText.match(/[\w\.-]+@[\w\.-]+\.\w+/);
+      const phoneMatch = resumeText.match(/[\+]?[1-9]?[\d\s\-\(\)]{10,}/);
+      const nameMatch = resumeText.split('\n')[0]?.trim();
+      
+      return {
+        name: nameMatch || "Resume Holder",
+        email: emailMatch ? emailMatch[0] : null,
+        phone: phoneMatch ? phoneMatch[0] : null,
+        linkedin_url: null,
+        portfolio_url: null,
+        summary: "Analysis completed with basic parsing",
+        work_experience: [],
+        education: [],
+        technical_skills: [],
+        soft_skills: [],
+        projects: [],
+        certifications: [],
+        resume_rating: 6,
+        improvement_areas: "AI analysis encountered formatting issues",
+        upskill_suggestions: ["Please try uploading again"]
+      };
+    }
 
   } catch (error) {
     console.error('Analysis error:', error.message);
