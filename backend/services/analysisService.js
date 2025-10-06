@@ -15,15 +15,9 @@ async function analyzeResume(buffer) {
     console.log('Initializing Gemini AI...');
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     
-    // Use the stable model name
+    // Use the basic model that should work everywhere
     const model = genAI.getGenerativeModel({ 
-      model: 'models/gemini-1.5-flash',
-      generationConfig: {
-        temperature: 0.7,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: 8192,
-      }
+      model: 'gemini-1.5-flash-8b'
     });
     console.log('Model initialized successfully');
 
