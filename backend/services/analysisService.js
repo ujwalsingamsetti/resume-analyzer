@@ -36,39 +36,25 @@ Resume text: ${resumeText}`;
 
     console.log('Initializing Gemini AI...');
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
     
-    // Try the most basic working models
-    const modelNames = ['gemini-1.5-flash-8b-001', 'gemini-1.5-flash-001', 'gemini-1.0-pro'];
-    
-    for (const modelName of modelNames) {
-      try {
-        console.log(`Trying model: ${modelName}`);
-        const model = genAI.getGenerativeModel({ model: modelName });
-        
-        console.log('Calling Gemini API...');
-        const result = await model.generateContent(prompt);
-        const responseText = result.response.text();
-        console.log('Gemini response received');
+    console.log('Calling Gemini API...');
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
+    console.log('Gemini response received');
 
-        // Clean response
-        let jsonText = responseText.trim();
-        if (jsonText.startsWith('```json')) jsonText = jsonText.substring(7);
-        if (jsonText.startsWith('```')) jsonText = jsonText.substring(3);
-        if (jsonText.endsWith('```')) jsonText = jsonText.substring(0, jsonText.length - 3);
+    // Clean response
+    let jsonText = responseText.trim();
+    if (jsonText.startsWith('```json')) jsonText = jsonText.substring(7);
+    if (jsonText.startsWith('```')) jsonText = jsonText.substring(3);
+    if (jsonText.endsWith('```')) jsonText = jsonText.substring(0, jsonText.length - 3);
 
-        console.log('Parsing JSON response...');
-        const analysis = JSON.parse(jsonText.trim());
-        console.log('Analysis completed successfully with model:', modelName);
-        
-        return analysis;
-      } catch (error) {
-        console.log(`Model ${modelName} failed:`, error.message);
-        continue;
-      }
-    }
+    console.log('Parsing JSON response...');
+    const analysis = JSON.parse(jsonText.trim());
+    console.log('Analysis completed successfully');
     
-    throw new Error('All Gemini models failed. Please check your API key.');
-    
+    return analysis;
+
   } catch (error) {
     console.error('Analysis error:', error.message);
     throw error;
