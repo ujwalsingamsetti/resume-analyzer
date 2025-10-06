@@ -12,27 +12,34 @@ async function analyzeResume(buffer) {
       throw new Error('GEMINI_API_KEY not configured');
     }
 
-    const prompt = `Analyze this resume and return ONLY a valid JSON object with this exact structure:
+    const prompt = `You are an expert HR recruiter. Analyze this resume thoroughly and provide specific, actionable feedback. Return ONLY a valid JSON object:
 
 {
-  "name": "Full Name",
-  "email": "email@example.com", 
-  "phone": "phone number",
-  "linkedin_url": "linkedin url or null",
-  "portfolio_url": "portfolio url or null",
-  "summary": "brief summary",
-  "work_experience": [{"role": "Job Title", "company": "Company", "duration": "2020-2023", "description": ["responsibility 1"]}],
-  "education": [{"degree": "Degree", "institution": "School", "graduation_year": "2023"}],
-  "technical_skills": ["skill1", "skill2"],
-  "soft_skills": ["skill1", "skill2"], 
-  "projects": [{"name": "Project Name", "description": "Project description"}],
-  "certifications": ["cert1", "cert2"],
-  "resume_rating": 7,
-  "improvement_areas": "Areas to improve",
-  "upskill_suggestions": ["suggestion1", "suggestion2"]
+  "name": "Extract full name",
+  "email": "Extract email or null",
+  "phone": "Extract phone or null",
+  "linkedin_url": "Extract LinkedIn URL or null",
+  "portfolio_url": "Extract portfolio/GitHub URL or null",
+  "summary": "Write a 2-3 sentence professional summary of this candidate",
+  "work_experience": [Extract all work experience with specific roles, companies, durations, and key responsibilities],
+  "education": [Extract all education with degrees, institutions, and graduation years],
+  "technical_skills": [List all technical skills mentioned],
+  "soft_skills": [Identify soft skills from experience descriptions],
+  "projects": [Extract all projects with names and descriptions],
+  "certifications": [List all certifications mentioned],
+  "resume_rating": Rate from 1-10 based on completeness, relevance, and presentation,
+  "improvement_areas": "Provide 3-4 specific areas where this resume could be improved (e.g., 'Add quantifiable achievements', 'Include more technical details', 'Improve formatting consistency')",
+  "upskill_suggestions": ["Suggest 4-5 specific skills or technologies this candidate should learn based on their field and current skills"]
 }
 
-Resume text: ${resumeText}`;
+IMPORTANT: 
+- Be specific and detailed in improvement_areas and upskill_suggestions
+- Base suggestions on the actual content and field of work
+- Don't use placeholder text like 'suggestion1' or 'Areas to improve'
+- Provide actionable, personalized advice
+
+Resume text:
+${resumeText}`;
 
     console.log('Initializing Gemini AI...');
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
