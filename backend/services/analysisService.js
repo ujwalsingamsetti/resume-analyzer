@@ -42,9 +42,12 @@ JSON Structure:
 `;
 
   try {
+    console.log('Calling Gemini API...');
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const result = await model.generateContent(prompt);
     const responseText = await result.response.text();
+    
+    console.log('Gemini response received:', responseText.substring(0, 200) + '...');
     
     // Clean the response text to extract JSON
     let jsonText = responseText.trim();
@@ -60,8 +63,14 @@ JSON Structure:
       jsonText = jsonText.substring(0, jsonText.length - 3);
     }
     
-    return JSON.parse(jsonText.trim());
+    console.log('Cleaned JSON text:', jsonText.substring(0, 200) + '...');
+    
+    const parsedResult = JSON.parse(jsonText.trim());
+    console.log('Successfully parsed JSON');
+    return parsedResult;
   } catch (error) {
+    console.error('Analysis error:', error.message);
+    console.error('Error stack:', error.stack);
     throw new Error('Failed to analyze resume: ' + error.message);
   }
 }
