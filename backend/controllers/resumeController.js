@@ -3,38 +3,37 @@ const databaseService = require('../services/databaseService');
 
 async function uploadResume(req, res) {
   try {
-    console.log('Upload request received');
-    
-    // Check environment variables
-    if (!process.env.GEMINI_API_KEY) {
-      console.error('GEMINI_API_KEY not found');
-      return res.status(500).json({ error: 'Server configuration error: Missing API key' });
-    }
+    console.log('=== UPLOAD REQUEST START ===');
     
     if (!req.file) {
       console.log('No file uploaded');
       return res.status(400).json({ error: 'No file uploaded' });
     }
-    
-    console.log('File received:', req.file.originalname, 'Size:', req.file.size);
-    
-    console.log('Starting resume analysis...');
+
+    console.log('File details:', {
+      name: req.file.originalname,
+      size: req.file.size,
+      mimetype: req.file.mimetype
+    });
+
+    // Analyze resume
+    console.log('Starting analysis...');
     const analysis = await analyzeResume(req.file.buffer);
-    console.log('Analysis completed successfully');
-    
+    console.log('Analysis completed');
+
+    // Save to database
     console.log('Saving to database...');
     const resumeId = await databaseService.saveResumeAnalysis(analysis);
-    console.log('Saved to database with ID:', resumeId);
-    
-    // Return analysis with database ID
-    res.json({
-      ...analysis,
-      id: resumeId
-    });
+    console.log('Saved with ID:', resumeId);
+
+    console.log('=== UPLOAD REQUEST SUCCESS ===');
+    res.json({ ...analysis, id: resumeId });
+
   } catch (error) {
-    console.error('Upload error:', error.message);
-    console.error('Error stack:', error.stack);
-    res.status(500).json({ error: error.message || 'Internal server error' });
+    console.error('=== UPLOAD REQUEST ERROR ===');
+    console.error('Error:', error.message);
+    console.error('Stack:', error.stack);
+    res.status(500).json({ error: error.message });
   }
 }
 
@@ -43,7 +42,7 @@ async function getAllResumes(req, res) {
     const resumes = await databaseService.getAllResumes();
     res.json(resumes);
   } catch (error) {
-    console.error(error);
+    console.error('Get all resumes error:', error);
     res.status(500).json({ error: error.message });
   }
 }
@@ -59,7 +58,7 @@ async function getResumeById(req, res) {
     
     res.json(resume);
   } catch (error) {
-    console.error(error);
+    console.error('Get resume by ID error:', error);
     res.status(500).json({ error: error.message });
   }
 }
@@ -75,7 +74,7 @@ async function deleteResume(req, res) {
     
     res.json({ message: 'Resume deleted successfully' });
   } catch (error) {
-    console.error(error);
+    console.error('Delete resume error:', error);
     res.status(500).json({ error: error.message });
   }
 }

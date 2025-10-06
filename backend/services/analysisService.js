@@ -1,77 +1,62 @@
 const pdfParse = require('pdf-parse');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-require('dotenv').config();
-
-// Debug: Check if API key is loaded
-console.log('GEMINI_API_KEY loaded:', process.env.GEMINI_API_KEY ? 'YES' : 'NO');
-console.log('GEMINI_API_KEY length:', process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.length : 0);
-console.log('GEMINI_API_KEY starts with:', process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.substring(0, 10) + '...' : 'NOT SET');
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 async function analyzeResume(buffer) {
-  const data = await pdfParse(buffer);
-  
-  const resumeText = data.text;
-  console.log(resumeText)
-  // Prompt for Gemini
-  const prompt = `
-You are an expert technical recruiter. Analyze this resume text and return a JSON object with the following structure. Fill all fields, using null or empty arrays if data is missing. Do not include any text outside the JSON.
-
-Resume Text:
-${resumeText}
-
-JSON Structure:
-{
-  "name": "string | null",
-  "email": "string | null",
-  "phone": "string | null",
-  "linkedin_url": "string | null",
-  "portfolio_url": "string | null",
-  "summary": "string | null",
-  "work_experience": [{ "role": "string", "company": "string", "duration": "string", "description": ["string"] }],
-  "education": [{ "degree": "string", "institution": "string", "graduation_year": "string" }],
-  "technical_skills": ["string"],
-  "soft_skills": ["string"],
-  "projects": [{ "name": "string", "description": "string" }],
-  "certifications": ["string"],
-  "resume_rating": "number (1-10)",
-  "improvement_areas": "string",
-  "upskill_suggestions": ["string"]
-}
-`;
-
   try {
-    console.log('Calling Gemini API...');
+    console.log('Starting PDF parsing...');
+    const data = await pdfParse(buffer);
+    const resumeText = data.text;
+    console.log('PDF parsed successfully, text length:', resumeText.length);
+
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY not configured');
+    }
+
+    console.log('Initializing Gemini AI...');
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+    const prompt = `Analyze this resume and return ONLY a valid JSON object with this exact structure:
+
+{
+  "name": "Full Name",
+  "email": "email@example.com",
+  "phone": "phone number",
+  "linkedin_url": "linkedin url or null",
+  "portfolio_url": "portfolio url or null", 
+  "summary": "brief summary",
+  "work_experience": [{"role": "Job Title", "company": "Company", "duration": "2020-2023", "description": ["responsibility 1", "responsibility 2"]}],
+  "education": [{"degree": "Degree", "institution": "School", "graduation_year": "2023"}],
+  "technical_skills": ["skill1", "skill2"],
+  "soft_skills": ["skill1", "skill2"],
+  "projects": [{"name": "Project Name", "description": "Project description"}],
+  "certifications": ["cert1", "cert2"],
+  "resume_rating": 7,
+  "improvement_areas": "Areas to improve",
+  "upskill_suggestions": ["suggestion1", "suggestion2"]
+}
+
+Resume text: ${resumeText}`;
+
+    console.log('Calling Gemini API...');
     const result = await model.generateContent(prompt);
-    const responseText = await result.response.text();
-    
-    console.log('Gemini response received:', responseText.substring(0, 200) + '...');
-    
-    // Clean the response text to extract JSON
+    const responseText = result.response.text();
+    console.log('Gemini response received');
+
+    // Clean response
     let jsonText = responseText.trim();
+    if (jsonText.startsWith('```json')) jsonText = jsonText.substring(7);
+    if (jsonText.startsWith('```')) jsonText = jsonText.substring(3);
+    if (jsonText.endsWith('```')) jsonText = jsonText.substring(0, jsonText.length - 3);
+
+    console.log('Parsing JSON response...');
+    const analysis = JSON.parse(jsonText.trim());
+    console.log('Analysis completed successfully');
     
-    // Remove markdown code blocks if present
-    if (jsonText.startsWith('```json')) {
-      jsonText = jsonText.substring(7);
-    }
-    if (jsonText.startsWith('```')) {
-      jsonText = jsonText.substring(3);
-    }
-    if (jsonText.endsWith('```')) {
-      jsonText = jsonText.substring(0, jsonText.length - 3);
-    }
-    
-    console.log('Cleaned JSON text:', jsonText.substring(0, 200) + '...');
-    
-    const parsedResult = JSON.parse(jsonText.trim());
-    console.log('Successfully parsed JSON');
-    return parsedResult;
+    return analysis;
   } catch (error) {
     console.error('Analysis error:', error.message);
-    console.error('Error stack:', error.stack);
-    throw new Error('Failed to analyze resume: ' + error.message);
+    throw error;
   }
 }
 
