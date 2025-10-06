@@ -3,14 +3,28 @@ const databaseService = require('../services/databaseService');
 
 async function uploadResume(req, res) {
   try {
+    console.log('Upload request received');
+    
+    // Check environment variables
+    if (!process.env.GEMINI_API_KEY) {
+      console.error('GEMINI_API_KEY not found');
+      return res.status(500).json({ error: 'Server configuration error: Missing API key' });
+    }
+    
     if (!req.file) {
+      console.log('No file uploaded');
       return res.status(400).json({ error: 'No file uploaded' });
     }
     
-    const analysis = await analyzeResume(req.file.buffer);
+    console.log('File received:', req.file.originalname, 'Size:', req.file.size);
     
-    // Save to database
+    console.log('Starting resume analysis...');
+    const analysis = await analyzeResume(req.file.buffer);
+    console.log('Analysis completed successfully');
+    
+    console.log('Saving to database...');
     const resumeId = await databaseService.saveResumeAnalysis(analysis);
+    console.log('Saved to database with ID:', resumeId);
     
     // Return analysis with database ID
     res.json({
@@ -18,8 +32,9 @@ async function uploadResume(req, res) {
       id: resumeId
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
+    console.error('Upload error:', error.message);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ error: error.message || 'Internal server error' });
   }
 }
 

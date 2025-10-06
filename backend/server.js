@@ -37,6 +37,12 @@ process.on('unhandledRejection', (err) => {
 
 const PORT = process.env.PORT || 5050;
 console.log('Starting server...');
+console.log('Environment check:');
+console.log('- NODE_ENV:', process.env.NODE_ENV);
+console.log('- DATABASE_URL:', process.env.DATABASE_URL ? 'SET' : 'NOT SET');
+console.log('- GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? 'SET' : 'NOT SET');
+console.log('- CORS_ORIGINS:', process.env.CORS_ORIGINS);
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
